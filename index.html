@@ -511,60 +511,6 @@
     if (sidebarPrivacy) sidebarPrivacy.href = `/legal/privacy.html`;
   }
   
-  // Language button event listeners
-  document.getElementById('btn-it').addEventListener('click', () => setLang('it'));
-  document.getElementById('btn-en').addEventListener('click', () => setLang('en'));
-  document.getElementById('btn-de').addEventListener('click', () => setLang('de'));
-  document.getElementById('btn-es').addEventListener('click', () => setLang('es'));
-  document.getElementById('btn-fr').addEventListener('click', () => setLang('fr'));
-  
-  // Load saved language preference or default to Italian
-  const savedLang = localStorage.getItem('preferredLang') || 'it';
-  setLang(savedLang); du contenu?",
-      "faq.1.a": "Non. Burg IPTV est seulement un <strong>lecteur</strong>. Nous ne fournissons aucune liste ni contenu.",
-      "faq.2.q": "Est-il légal d'utiliser le lecteur?",
-      "faq.2.a": "Oui. L'utilisateur est responsable des listes qu'il charge et doit avoir les droits pour les visionner.",
-      "faq.3.q": "Comment fonctionne l'essai gratuit?",
-      "faq.3.a": "Vous pouvez utiliser l'application pendant 7 jours. Après, l'accès s'arrête jusqu'à ce que vous activiez un abonnement.",
-      "footer.terms": "Conditions d'Utilisation",
-      "footer.privacy": "Politique de Confidentialité",
-      "footer.contact": "Contact"
-    }
-  };
-  
-  // Language switching function
-  function setLang(lang) {
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-      const key = el.getAttribute("data-i18n");
-      if (dict[lang] && dict[lang][key]) {
-        el.innerHTML = dict[lang][key];
-      }
-    });
-    
-    // Update active language button
-    document.querySelectorAll('.lang-switch button').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    document.getElementById('btn-' + lang).classList.add('active');
-    
-    // Update HTML lang attribute
-    document.documentElement.lang = lang;
-    
-    // Save preference
-    localStorage.setItem('preferredLang', lang);
-    
-    // Update footer links with correct language
-    const termsLink = document.querySelector('a[href*="/legal/terms"]');
-    const privacyLink = document.querySelector('a[href*="/legal/privacy"]');
-    const sidebarTerms = document.querySelector('.sidebar-nav a[href*="/legal/terms"]');
-    const sidebarPrivacy = document.querySelector('.sidebar-nav a[href*="/legal/privacy"]');
-    
-    if (termsLink) termsLink.href = `/legal/terms.html`;
-    if (privacyLink) privacyLink.href = `/legal/privacy.html`;
-    if (sidebarTerms) sidebarTerms.href = `/legal/terms.html`;
-    if (sidebarPrivacy) sidebarPrivacy.href = `/legal/privacy.html`;
-  }
-  
   // Wait for DOM to be ready
   document.addEventListener('DOMContentLoaded', function() {
     // Hamburger Menu Toggle
