@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BurgTV – Media Player per lo streaming dei tuoi contenuti</title>
+  <meta name="description" content="BurgTV: media player per riprodurre le tue playlist M3U. Prova gratuita 7 giorni. Abbonamento annuale CHF 8.90 o licenza permanente CHF 25.90.">
+  <link rel="icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}html,body{height:100%}
+    :root{--violet:#8a2be2;--mag:#f00078;--ink:#0a0a14;--ink2:#151424;--text:#eef1f8;--muted:#cbd2e6;--card:#1b1a2d;--accent:#B94A8E}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--ink);color:var(--text)}
+    .container{width:min(1120px,calc(100% - 32px));margin:0 auto}
+    .section{padding:72px 0}.section.alt{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0))}
+    h1,h2,h3{margin:0 0 12px}h1{font-size:44px;line-height:1.1}h2{font-size:28px}p{margin:0 0 8px;color:var(--muted)}
+    .nav{position:sticky;top:0;background:rgba(10,10,20,.95);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid rgba(255,255,255,.06);z-index:100}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:72px;position:relative}
+    .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+    .brand-icon{width:auto;height:56px}
+    .menu-toggle{background:transparent;border:none;cursor:pointer;padding:8px;display:flex;flex-direction:column;gap:5px;margin-right:16px}
+    .menu-toggle span{display:block;width:28px;height:3px;background:var(--text);border-radius:2px;transition:all 0.3s ease}
+    .menu-toggle.active span:nth-child(1){transform:rotate(45deg) translate(6px,6px)}
+    .menu-toggle.active span:nth-child(2){opacity:0}
+    .menu-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(7px,-8px)}
+    .sidebar{position:fixed;top:0;left:-320px;width:300px;height:100vh;background:rgba(15,15,25,0.98);backdrop-filter:blur(20px);border-right:1px solid rgba(255,255,255,.08);transition:left 0.3s ease;z-index:99;overflow-y:auto}
+    .sidebar.active{left:0}
+    .sidebar-header{padding:20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px}
+    .sidebar-logo{height:40px;width:auto}
+    .sidebar-nav{padding:20px 0}
+    .sidebar-nav a{display:flex;align-items:center;padding:16px 24px;color:var(--text);text-decoration:none;font-size:16px;transition:all 0.3s ease;border-left:3px solid transparent}
+    .sidebar-nav a:hover{background:rgba(255,255,255,.05);border-left-color:var(--accent)}
+    .sidebar-nav a.active{background:rgba(185,74,142,.1);border-left-color:var(--accent);color:#fff}
+    .sidebar-nav a span{margin-right:12px;font-size:20px}
+    .sidebar-divider{height:1px;background:rgba(255,255,255,.08);margin:10px 20px}
+    .sidebar-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;z-index:98}
+    .sidebar-overlay.active{display:block}
+    .links{display:flex;align-items:center;gap:24px}
+    .links a{color:#d9def7;text-decoration:none}.links a:hover{opacity:.8}
+    .lang-switch{display:flex;gap:8px}
+    .lang-switch button{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:12px;padding:6px 12px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+    .lang-switch button.active{background:rgba(255,255,255,.1);border-color:#fff}
+    .hero{background:radial-gradient(1200px 800px at 10% 10%, #2a1050 0%, #120c2c 60%, #0a0a14 100%), linear-gradient(135deg, var(--violet) 0%, var(--mag) 100%);background-blend-mode:overlay}
+    .hero-inner{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center;padding:56px 0 72px}
+    .hero-copy p{font-size:18px}
+    .cta-row{display:flex;gap:12px;margin-top:16px}
+    .btn{display:inline-block;padding:12px 24px;border-radius:10px;text-decoration:none;border:1px solid rgba(255,255,255,.2);font-weight:600;transition:all 0.3s ease}
+    .btn.primary{background:#fff;color:#0a0a14;font-weight:700}
+    .btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,255,255,.2)}
+    .btn.ghost{color:#eef1f8;background:rgba(255,255,255,.05)}
+    .btn.ghost:hover{background:rgba(255,255,255,.1)}
+    .trust{margin-top:10px;color:#b8c0de;font-size:14px}
+    .tv-frame{position:relative;width:100%;aspect-ratio:16/10;border-radius:18px;background:linear-gradient(135deg,#1c1630,#0e0c1e);border:1px solid rgba(255,255,255,.08);box-shadow:0 16px 40px rgba(0,0,0,.45);overflow:hidden}
+    .tv-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+    .tv-frame::after{content:"";position:absolute;inset:-20px;border-radius:24px;filter:blur(40px);background:radial-gradient(closest-side,rgba(138,43,226,.25),transparent);pointer-events:none}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px;transition:all 0.3s ease}
+    .card:hover{transform:translateY(-4px);border-color:rgba(185,74,142,.3);box-shadow:0 8px 20px rgba(185,74,142,.1)}
+    .device-highlight{text-align:center;max-width:500px;margin:0 auto;padding:40px 20px}
+    .device-icon-large{font-size:64px;margin-bottom:16px}
+    .device-highlight h3{font-size:24px;margin-bottom:12px}
+    .device-highlight p{color:var(--muted);margin-bottom:24px;font-size:16px}
+    .device-highlight .btn{display:inline-block}
+    .devices{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;list-style:none;padding:0;margin:14px 0 0}
+    .devices li{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;text-align:center;color:#dfe4fb;transition:all 0.3s ease}
+    .devices li:hover{transform:translateY(-2px);border-color:rgba(185,74,142,.3)}
+    .faq details{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;margin:10px 0;transition:all 0.3s ease}
+    .faq details:hover{border-color:rgba(185,74,142,.3)}
+    .faq summary{cursor:pointer;font-weight:600}
+    .footer{border-top:1px solid rgba(255,255,255,.06);padding:24px 0;background:#0e0e18}
+    .foot-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px}
+    .footer-links{display:flex;gap:20px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color 0.3s ease}
+    .footer-links a:hover{color:var(--accent)}
+    @media (max-width:900px){.hero-inner{grid-template-columns:1fr;gap:12px}.grid-3,.pricing-grid{grid-template-columns:1fr}.devices{grid-template-columns:1fr 1fr}h1{font-size:34px}.links{display:none}.cta-row{flex-direction:column}.btn{width:100%;text-align:center}}
+    @media (max-width:600px){.devices{grid-template-columns:1fr}.lang-switch button{padding:4px 8px;font-size:12px}h1{font-size:28px}.hero-copy p{font-size:16px}}
+  </style>
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header"><img src="assets/branding/logo.svg" class="sidebar-logo" alt="BurgTV"/></div>
+  <nav class="sidebar-nav">
+    <a href="/" class="active"><span>🏠</span><span data-i18n="menu.home">Home</span></a>
+    <a href="https://app.burgtv.com/login.html"><span>🔐</span><span data-i18n="menu.login">Accedi</span></a>
+    <a href="#features"><span>✨</span><span data-i18n="menu.features">Funzionalità</span></a>
+    <a href="#devices"><span>📺</span><span data-i18n="menu.devices">Download</span></a>
+    <div class="sidebar-divider"></div>
+    <a href="#faq"><span>❓</span><span data-i18n="menu.faq">FAQ</span></a>
+    <a href="/legal/terms.html"><span>📄</span><span data-i18n="menu.terms">Termini e Condizioni</span></a>
+    <a href="/legal/privacy.html"><span>🔒</span><span data-i18n="menu.privacy">Privacy Policy</span></a>
+    <a href="mailto:info@burgtv.com"><span>📧</span><span data-i18n="menu.contact">Contatti</span></a>
+  </nav>
+</div>
+<div class="sidebar-overlay" id="overlay"></div>
+<header class="nav">
+  <div class="container nav-inner">
+    <div style="display:flex;align-items:center;">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <a class="brand" href="/"><img src="assets/branding/logo.svg" class="brand-icon" alt="BurgTV"/></a>
+    </div>
+    <nav class="links">
+      <a data-i18n="nav.features" href="#features">Funzioni</a>
+      <a data-i18n="nav.devices" href="#devices">Download</a>
+      <a data-i18n="nav.faq" href="#faq">FAQ</a>
+    </nav>
+    <div class="lang-switch">
+      <button id="btn-it" class="active">IT</button>
+      <button id="btn-en">EN</button>
+      <button id="btn-de">DE</button>
+      <button id="btn-es">ES</button>
+      <button id="btn-fr">FR</button>
+    </div>
+  </div>
+</header>
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <h1 data-i18n="hero.title">Il media player <span>semplice</span> e <span>veloce</span></h1>
+      <p data-i18n="hero.subtitle">Scarica l'app <strong>gratis</strong> e riproduci le tue playlist <strong>M3U</strong>. Passa a <strong>Premium</strong> per sbloccare tutte le funzionalità.</p>
+      <div class="cta-row">
+        <a data-i18n="cta.download" href="https://www.amazon.com/dp/XXXXXX" class="btn primary">Scarica su Fire TV</a>
+        <a data-i18n="cta.login" href="https://app.burgtv.com/login.html" class="btn ghost">Accedi</a>
+      </div>
+      <div class="trust" data-i18n="hero.note">BurgTV non fornisce contenuti. Solo l'applicazione per riprodurli.</div>
+    </div>
+    <div class="hero-art"><div class="tv-frame"><img src="assets/hero/hero-tv-remote.jpg" alt="BurgTV"></div></div>
+  </div>
+</section>
+<section id="features" class="section">
+  <div class="container">
+    <h2 data-i18n="features.title">Funzioni principali</h2>
+    <div class="grid-3">
+      <div class="card"><h3 data-i18n="features.free.title">Versione Gratuita</h3><p data-i18n="features.free.text">Scarica l'app gratis con funzionalità base. Nessun account richiesto per iniziare.</p></div>
+      <div class="card"><h3 data-i18n="features.premium.title">Premium</h3><p data-i18n="features.premium.text">Sblocca tutte le funzionalità: 5 dispositivi, EPG, playlist illimitate e molto altro.</p></div>
+      <div class="card"><h3 data-i18n="features.trial.title">7 giorni gratis</h3><p data-i18n="features.trial.text">Prova Premium gratis per 7 giorni con l'abbonamento annuale.</p></div>
+    </div>
+  </div>
+</section>
+<section id="devices" class="section alt">
+  <div class="container">
+    <h2 data-i18n="devices.title">Disponibile su</h2>
+    <div class="device-highlight">
+      <div class="device-icon-large">🔥</div>
+      <h3>Amazon Fire TV & Firestick</h3>
+      <p data-i18n="devices.desc">Scarica BurgTV direttamente dall'Amazon Appstore sul tuo dispositivo Fire TV.</p>
+      <a data-i18n="devices.cta" href="https://www.amazon.com/dp/XXXXXX" class="btn primary">Scarica ora</a>
+    </div>
+  </div>
+</section>
+<section id="faq" class="section">
+  <div class="container">
+    <h2>FAQ</h2>
+    <div class="faq">
+      <details><summary data-i18n="faq.1.q">Fornite liste o contenuti?</summary><p data-i18n="faq.1.a">No. BurgTV è un'applicazione software (media player). Non forniamo, ospitiamo né distribuiamo alcun contenuto.</p></details>
+      <details><summary data-i18n="faq.2.q">È legale usare l'applicazione?</summary><p data-i18n="faq.2.a">Sì, l'uso dell'applicazione è legale. L'utente è responsabile dei contenuti che riproduce e deve avere i diritti per visualizzarli.</p></details>
+      <details><summary data-i18n="faq.3.q">Qual è la differenza tra versione gratuita e Premium?</summary><p data-i18n="faq.3.a">La versione gratuita ha funzionalità limitate. Premium sblocca tutte le funzionalità inclusi 5 dispositivi, EPG completo e playlist illimitate.</p></details>
+      <details><summary data-i18n="faq.4.q">Come funziona la prova gratuita di 7 giorni?</summary><p data-i18n="faq.4.a">Scegliendo l'abbonamento annuale, puoi provare Premium gratis per 7 giorni. Al termine, l'abbonamento si attiva automaticamente.</p></details>
+    </div>
+  </div>
+</section>
+<footer class="footer">
+  <div class="container foot-inner">
+    <a class="brand" href="/"><img src="assets/branding/logo.svg" style="height:32px;width:auto" alt="BurgTV"/></a>
+    <div class="footer-links">
+      <a href="/legal/terms.html" data-i18n="footer.terms">Termini e Condizioni</a>
+      <a href="/legal/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
+      <a href="mailto:info@burgtv.com" data-i18n="footer.contact">Contatti</a>
+    </div>
+    <small>© <span id="y"></span> BurgTV – burgtv.com</small>
+  </div>
+</footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  const dict = {
+    it:{
+      "nav.features":"Funzioni","nav.devices":"Download","nav.faq":"FAQ",
+      "menu.home":"Home","menu.login":"Accedi","menu.features":"Funzionalità","menu.devices":"Download","menu.faq":"FAQ","menu.terms":"Termini e Condizioni","menu.privacy":"Privacy Policy","menu.contact":"Contatti",
+      "hero.title":"Il media player <span>semplice</span> e <span>veloce</span>","hero.subtitle":"Scarica l'app <strong>gratis</strong> e riproduci le tue playlist <strong>M3U</strong>. Passa a <strong>Premium</strong> per sbloccare tutte le funzionalità.","cta.download":"Scarica su Fire TV","cta.login":"Accedi","hero.note":"BurgTV non fornisce contenuti. Solo l'applicazione per riprodurli.",
+      "features.title":"Funzioni principali","features.free.title":"Versione Gratuita","features.free.text":"Scarica l'app gratis con funzionalità base. Nessun account richiesto per iniziare.","features.premium.title":"Premium","features.premium.text":"Sblocca tutte le funzionalità: 5 dispositivi, EPG, playlist illimitate e molto altro.","features.trial.title":"7 giorni gratis","features.trial.text":"Prova Premium gratis per 7 giorni con l'abbonamento annuale.",
+      "devices.title":"Disponibile su","devices.desc":"Scarica BurgTV direttamente dall'Amazon Appstore sul tuo dispositivo Fire TV.","devices.cta":"Scarica ora",
+      "faq.1.q":"Fornite liste o contenuti?","faq.1.a":"No. BurgTV è un'applicazione software (media player). Non forniamo, ospitiamo né distribuiamo alcun contenuto.","faq.2.q":"È legale usare l'applicazione?","faq.2.a":"Sì, l'uso dell'applicazione è legale. L'utente è responsabile dei contenuti che riproduce e deve avere i diritti per visualizzarli.","faq.3.q":"Qual è la differenza tra versione gratuita e Premium?","faq.3.a":"La versione gratuita ha funzionalità limitate. Premium sblocca tutte le funzionalità inclusi 5 dispositivi, EPG completo e playlist illimitate.","faq.4.q":"Come funziona la prova gratuita di 7 giorni?","faq.4.a":"Scegliendo l'abbonamento annuale, puoi provare Premium gratis per 7 giorni. Al termine, l'abbonamento si attiva automaticamente.",
+      "footer.terms":"Termini e Condizioni","footer.privacy":"Privacy Policy","footer.contact":"Contatti"
+    },
+    en:{
+      "nav.features":"Features","nav.devices":"Download","nav.faq":"FAQ",
+      "menu.home":"Home","menu.login":"Sign In","menu.features":"Features","menu.devices":"Download","menu.faq":"FAQ","menu.terms":"Terms and Conditions","menu.privacy":"Privacy Policy","menu.contact":"Contact",
+      "hero.title":"The <span>simple</span> and <span>fast</span> media player","hero.subtitle":"Download the app <strong>for free</strong> and play your <strong>M3U</strong> playlists. Upgrade to <strong>Premium</strong> to unlock all features.","cta.download":"Download on Fire TV","cta.login":"Sign In","hero.note":"BurgTV does not provide content. Just the application to play it.",
+      "features.title":"Main Features","features.free.title":"Free Version","features.free.text":"Download the app for free with basic features. No account required to start.","features.premium.title":"Premium","features.premium.text":"Unlock all features: 5 devices, EPG, unlimited playlists and much more.","features.trial.title":"7 days free","features.trial.text":"Try Premium free for 7 days with the annual subscription.",
+      "devices.title":"Available on","devices.desc":"Download BurgTV directly from the Amazon Appstore on your Fire TV device.","devices.cta":"Download now",
+      "faq.1.q":"Do you provide lists or content?","faq.1.a":"No. BurgTV is a software application (media player). We do not provide, host, or distribute any content.","faq.2.q":"Is using the application legal?","faq.2.a":"Yes. The user is responsible for the content they play and must have rights to view it.","faq.3.q":"What's the difference between free and Premium?","faq.3.a":"The free version has limited features. Premium unlocks all features including 5 devices, full EPG, and unlimited playlists.","faq.4.q":"How does the 7-day free trial work?","faq.4.a":"With the annual subscription, you can try Premium free for 7 days. After that, the subscription activates automatically.",
+      "footer.terms":"Terms and Conditions","footer.privacy":"Privacy Policy","footer.contact":"Contact"
+    },
+    de:{
+      "nav.features":"Funktionen","nav.devices":"Download","nav.faq":"FAQ",
+      "menu.home":"Startseite","menu.login":"Anmelden","menu.features":"Funktionen","menu.devices":"Download","menu.faq":"FAQ","menu.terms":"AGB","menu.privacy":"Datenschutz","menu.contact":"Kontakt",
+      "hero.title":"Der <span>einfache</span> und <span>schnelle</span> Media Player","hero.subtitle":"Laden Sie die App <strong>kostenlos</strong> herunter und spielen Sie Ihre <strong>M3U</strong>-Playlisten ab. Upgraden Sie auf <strong>Premium</strong> für alle Funktionen.","cta.download":"Auf Fire TV laden","cta.login":"Anmelden","hero.note":"BurgTV bietet keine Inhalte an. Nur die Anwendung zum Abspielen.",
+      "features.title":"Hauptfunktionen","features.free.title":"Kostenlose Version","features.free.text":"Laden Sie die App kostenlos mit Basisfunktionen herunter. Kein Konto erforderlich.","features.premium.title":"Premium","features.premium.text":"Alle Funktionen freischalten: 5 Geräte, EPG, unbegrenzte Playlisten und mehr.","features.trial.title":"7 Tage kostenlos","features.trial.text":"Testen Sie Premium 7 Tage kostenlos mit dem Jahresabo.",
+      "devices.title":"Verfügbar auf","devices.desc":"Laden Sie BurgTV direkt aus dem Amazon Appstore auf Ihrem Fire TV.","devices.cta":"Jetzt laden",
+      "faq.1.q":"Bieten Sie Listen oder Inhalte an?","faq.1.a":"Nein. BurgTV ist eine Software-Anwendung (Media Player). Wir bieten keine Inhalte an.","faq.2.q":"Ist die Nutzung legal?","faq.2.a":"Ja. Der Nutzer ist für die Inhalte verantwortlich und muss die Rechte haben.","faq.3.q":"Was ist der Unterschied zwischen kostenlos und Premium?","faq.3.a":"Die kostenlose Version hat eingeschränkte Funktionen. Premium schaltet alle Funktionen frei.","faq.4.q":"Wie funktioniert die 7-Tage-Testversion?","faq.4.a":"Mit dem Jahresabo können Sie Premium 7 Tage kostenlos testen. Danach wird das Abo automatisch aktiviert.",
+      "footer.terms":"AGB","footer.privacy":"Datenschutz","footer.contact":"Kontakt"
+    },
+    es:{
+      "nav.features":"Funciones","nav.devices":"Descargar","nav.faq":"FAQ",
+      "menu.home":"Inicio","menu.login":"Acceder","menu.features":"Funciones","menu.devices":"Descargar","menu.faq":"FAQ","menu.terms":"Términos","menu.privacy":"Privacidad","menu.contact":"Contacto",
+      "hero.title":"El media player <span>simple</span> y <span>rápido</span>","hero.subtitle":"Descarga la app <strong>gratis</strong> y reproduce tus playlists <strong>M3U</strong>. Pasa a <strong>Premium</strong> para desbloquear todas las funciones.","cta.download":"Descargar en Fire TV","cta.login":"Acceder","hero.note":"BurgTV no proporciona contenido. Solo la aplicación para reproducirlo.",
+      "features.title":"Funciones principales","features.free.title":"Versión Gratuita","features.free.text":"Descarga la app gratis con funciones básicas. Sin cuenta necesaria para empezar.","features.premium.title":"Premium","features.premium.text":"Desbloquea todas las funciones: 5 dispositivos, EPG, playlists ilimitadas y más.","features.trial.title":"7 días gratis","features.trial.text":"Prueba Premium gratis por 7 días con la suscripción anual.",
+      "devices.title":"Disponible en","devices.desc":"Descarga BurgTV directamente desde Amazon Appstore en tu Fire TV.","devices.cta":"Descargar ahora",
+      "faq.1.q":"¿Proporcionan listas o contenido?","faq.1.a":"No. BurgTV es una aplicación de software (media player). No proporcionamos contenido.","faq.2.q":"¿Es legal usar la aplicación?","faq.2.a":"Sí. El usuario es responsable del contenido que reproduce.","faq.3.q":"¿Cuál es la diferencia entre gratis y Premium?","faq.3.a":"La versión gratuita tiene funciones limitadas. Premium desbloquea todas las funciones.","faq.4.q":"¿Cómo funciona la prueba de 7 días?","faq.4.a":"Con la suscripción anual, puedes probar Premium gratis por 7 días. Después, se activa automáticamente.",
+      "footer.terms":"Términos","footer.privacy":"Privacidad","footer.contact":"Contacto"
+    },
+    fr:{
+      "nav.features":"Fonctionnalités","nav.devices":"Télécharger","nav.faq":"FAQ",
+      "menu.home":"Accueil","menu.login":"Connexion","menu.features":"Fonctionnalités","menu.devices":"Télécharger","menu.faq":"FAQ","menu.terms":"Conditions","menu.privacy":"Confidentialité","menu.contact":"Contact",
+      "hero.title":"Le media player <span>simple</span> et <span>rapide</span>","hero.subtitle":"Téléchargez l'app <strong>gratuitement</strong> et lisez vos playlists <strong>M3U</strong>. Passez à <strong>Premium</strong> pour débloquer toutes les fonctionnalités.","cta.download":"Télécharger sur Fire TV","cta.login":"Connexion","hero.note":"BurgTV ne fournit pas de contenu. Juste l'application pour le lire.",
+      "features.title":"Fonctionnalités principales","features.free.title":"Version Gratuite","features.free.text":"Téléchargez l'app gratuitement avec les fonctionnalités de base. Aucun compte requis.","features.premium.title":"Premium","features.premium.text":"Débloquez toutes les fonctionnalités: 5 appareils, EPG, playlists illimitées et plus.","features.trial.title":"7 jours gratuits","features.trial.text":"Essayez Premium gratuitement pendant 7 jours avec l'abonnement annuel.",
+      "devices.title":"Disponible sur","devices.desc":"Téléchargez BurgTV directement depuis l'Amazon Appstore sur votre Fire TV.","devices.cta":"Télécharger",
+      "faq.1.q":"Fournissez-vous des listes ou du contenu?","faq.1.a":"Non. BurgTV est une application logicielle (media player). Nous ne fournissons aucun contenu.","faq.2.q":"Est-il légal d'utiliser l'application?","faq.2.a":"Oui. L'utilisateur est responsable du contenu qu'il lit.","faq.3.q":"Quelle est la différence entre gratuit et Premium?","faq.3.a":"La version gratuite a des fonctionnalités limitées. Premium débloque toutes les fonctionnalités.","faq.4.q":"Comment fonctionne l'essai de 7 jours?","faq.4.a":"Avec l'abonnement annuel, vous pouvez essayer Premium gratuitement pendant 7 jours. Ensuite, l'abonnement s'active automatiquement.",
+      "footer.terms":"Conditions","footer.privacy":"Confidentialité","footer.contact":"Contact"
+    }
+  };
+  function setLang(l){document.querySelectorAll("[data-i18n]").forEach(e=>{const k=e.getAttribute("data-i18n");if(dict[l]&&dict[l][k])e.innerHTML=dict[l][k]});document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.remove('active'));document.getElementById('btn-'+l).classList.add('active');document.documentElement.lang=l;localStorage.setItem('preferredLang',l)}
+  document.addEventListener('DOMContentLoaded',function(){const m=document.getElementById('menuToggle'),s=document.getElementById('sidebar'),o=document.getElementById('overlay');function t(){m.classList.toggle('active');s.classList.toggle('active');o.classList.toggle('active')}if(m)m.addEventListener('click',t);if(o)o.addEventListener('click',t);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&s&&s.classList.contains('active'))t()});document.getElementById('btn-it').addEventListener('click',()=>setLang('it'));document.getElementById('btn-en').addEventListener('click',()=>setLang('en'));document.getElementById('btn-de').addEventListener('click',()=>setLang('de'));document.getElementById('btn-es').addEventListener('click',()=>setLang('es'));document.getElementById('btn-fr').addEventListener('click',()=>setLang('fr'));setLang(localStorage.getItem('preferredLang')||'it')});
+</script>
+</body>
+</html>
